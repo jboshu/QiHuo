@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>行情数据</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/connectToBroker.js"></script>
+    <script type="application/javascript">
+        var socket ;
+        //登录过后初始化socket连接
+        function initSocketChat(userId) {
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else {
+                console.log("您的浏览器支持WebSocket/websocket");
+            }
+            //socket连接地址: 注意是ws协议
+            var path = 'ws://' + getLocalHost() + '/XM10/ChatTest/' + userId;
+            //var path = 'ws://localhost:8080/XM10/Broker/' + userId;
+            console.log(path)
+            socket = new WebSocket(path);
+            socket.onopen = function() {
+                console.log("Socket 已打开");
+            };
+            //获得消息事件
+            socket.onmessage = function(msg) {
+                var histroy = $("#history").val();
+                $("#history").val(histroy+"\r\n"+msg.data);
+                console.log($(msg));
+            };
+            //关闭事件
+            socket.onclose = function() {
+                console.log("Socket已关闭");
+            };
+            //错误事件
+            socket.onerror = function() {
+                alert("Socket发生了错误");
+            }
+            $(window).unload(function(){
+                socket.close();
+            });
+        }
+        //点击按钮发送消息
+        function send() {
+            url = "ChatGetUserName";
+            $.post(url,function(json){
+                if(json.status=="error"){
+                    alert("无法发送！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    console.log("发送消息: "+$("#msg").val());
+                    socket.send($("#msg").val());
+
+                    $('#msg').val("");
+                }
+            })
+
+        }
+        //连接
+        function connectChat() {
+            url = "ChatGetUserName";
+            $.post(url,function(json){
+                if(json.status=="error"){
+                    alert("无法进入！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    var userId = json.username;
+                    console.log(userId);
+                    initSocketChat(userId);
+                }
+
+            })
+        }
+    </script>
+</head>
+<body onload="getQuatations();flush()" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+<div id="inc_appbar"></div>
+<div id="inc_menu"></div>
+    <div class="mdui-container">
+        <div class="mdui-tab" mdui-tab style="margin-top: 1%">
+            <a href="#hs" class="mdui-ripple">沪深</a>
+            <a href="#hk" class="mdui-ripple">香港</a>
+            <a href="#jp" class="mdui-ripple">日本</a>
+            <a href="#eu" class="mdui-ripple">欧洲</a>
+            <a href="#us" class="mdui-ripple">美国</a>
+            <a href="#qh" class="mdui-ripple">期货</a>
+            <a href="#hl" class="mdui-ripple">汇率</a>
+        </div>
+        <div class="mdui-col-xs-7">
+
+            <div id="hs" class="mdui-p-a-2">
+
+            </div>
+            <div id="hk" class="mdui-p-a-2">
+
+            </div>
+            <div id="jp" class="mdui-p-a-2">
+
+            </div>
+            <div id="eu" class="mdui-p-a-2">
+
+            </div>
+            <div id="us" class="mdui-p-a-2">
+
+            </div>
+            <div id="qh" class="mdui-p-a-2">
+
+            </div>
+            <div id="hl" class="mdui-p-a-2">
+
+            </div>
+
+        </div>
+        <div class="mdui-col-xs-5">
+
+            <div class="col-md-4" role="complementary" style="margin-top: 5%;">
+                <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix mdui-shadow-1" style="border-style:solid; padding: 10px; border-width: 1px; border-color:gray;">
+                    <h3>行情讨论中心</h3>
+                    <form id="chatForm" style="margin-top: 3%">
+                        <button type="button" class="mdui-btn mdui-color-theme-accent mdui-ripple" onclick="connectChat()"><i class="mdui-icon material-icons">&#xe0b7;</i> 连接</button>
+                        <button type="button" class="mdui-btn mdui-color-theme-accent mdui-ripple" onclick="help()"><i class="mdui-icon material-icons">&#xe887;</i> 帮助</button>
+                    </form>
+                    <div class="mdui-textfield">
+                        <textarea id="msg" class="mdui-textfield-input" placeholder="请输入内容"></textarea>
+
+                    </div>
+                    <button type="button" class="mdui-btn mdui-color-theme-accent mdui-ripple" onclick="send()"><i class="mdui-icon material-icons">&#xe163;</i> 发送</button>
+
+            <textarea id="history" style="width: 100%;height: 200px ; max-lines: 10" readonly>
+            </textarea>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+    <div id="inc_notification"></div>
+</body>
+</html>
+
+<script>
+    $('#inc_appbar').load("index_beta.html #appbar");
+    $('#inc_menu').load("index_beta.html #left-drawer",function(responseTxt,statusTxt,xhr){
+        initPage();
+        connect();
+        $('#title').text("当前行情");
+    });
+    $('#inc_notification').load("index_beta.html #notifications");
+    var list;
+    var length;
+    var isonline = 1;
+    function getQuatations(){
+        url = "getDataToShowAction";
+        url = getQueryPath(url)
+        if(isonline==1){
+            $.post(url,function(json){
+                if(json.status == "error"){
+                    isonline = 0;
+                    alert("必须登录！");
+                    window.location.href = getQueryPath("login");
+
+                }
+                else{
+                    setQuatations(json);
+                }
+            })
+        }
+
+    }
+
+    function setQuatations(json){
+        list = json.aaData;
+        length = list.length;
+
+        var parents;
+        parents = document.getElementById("hs");
+        parents.innerHTML = "";
+        parents = document.getElementById("hk");
+        parents.innerHTML = "";
+        parents = document.getElementById("jp");
+        parents.innerHTML = "";
+        parents = document.getElementById("eu");
+        parents.innerHTML = "";
+        parents = document.getElementById("us");
+        parents.innerHTML = "";
+        parents = document.getElementById("qh");
+        parents.innerHTML = "";
+        parents = document.getElementById("hl");
+        parents.innerHTML = "";
+        for(var i = 0; i < length; i++){
+            //console.log(list[i])
+            var kind = list[i].kind;
+            var Node = document.createElement("div");
+            Node.className = "mdui-row mdui-row-gapless";
+            Node.style = "margin-top:1%;margin-left:2%";
+            Node.innerHTML = "<div class=\"mdui-col-xs-5\"><h2>"+list[i].name+"</h2></div>";
+            if(list[i].name == "在岸人民币"){
+                Node.innerHTML = "<div class=\"mdui-col-xs-5\"><h2><a href='USDCNY.html'> "+list[i].name+"</a></h2></div>";
+            }
+            if(list[i].ROFper < 0){
+                Node.innerHTML += "<div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].quotation+"</h4></div>";
+                Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].ROFper+"%</h4></div></div>";
+                if(list[i].kind!=4&&list[i].kind!=5&&list[i].kind!=8)
+                    Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].riseorfall+"</h4></div></div>";
+            }
+            else{
+                Node.innerHTML += "<div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].quotation+"</h4></div>";
+                Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].ROFper+"%</h4></div></div>";
+                if(list[i].kind!=4&&list[i].kind!=5&&list[i].kind!=8)
+                    Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].riseorfall+"</h4></div></div>";
+            }
+
+
+            var imageNode = document.createElement("div");
+            switch (kind){
+                case 0:
+                    var parent = document.getElementById("hs");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/hollow/small/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 1:
+                    var parent = document.getElementById("hk");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/hk_stock/min_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 2:
+                    var parent = document.getElementById("eu");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/forex/min5_m_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 9:
+                case 3:
+                    var parent = document.getElementById("us");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/usstock/min_idx_py/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 4:
+                    var parent = document.getElementById("qh");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/global/mins_hollow/"+ list[i].image+".gif ' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 5:
+                    var parent = document.getElementById("hl");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/v5/forex/min_m/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 6:
+                    var parent = document.getElementById("jp");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/forex/min5_m_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 8:
+                    var parent = document.getElementById("hl");
+                    parent.appendChild(Node);
+                    break;
+            }
+        }
+    }
+
+    function flush(){
+        if(isonline==1){
+            setInterval(function(){
+                console.log("123");
+                getQuatations();
+            },5*60*1000);
+        }
+
+    }
+    function help(){
+        var title = '聊天帮助手册';
+        var content = '操作步骤：点击Chat按钮进入聊天室，连接成功会有提示，在第一个对话框输入内容，点击按钮Send发送' +
+                '<br><br>群发：@ALL#message，比如@ALL#大家好；当然也可以直接发消息，比如大家好' +
+                '<br>私发：@xxx@xxx#message,比如@A@B#你们好，表示给A和B发送你们好' +
+                '<br><br>大家可以在这里谈论当前行情的情况' +
+                '<br>该聊天室必须连接进入才能收到消息，所以@对象不在线是无法发送的！';
+        mdui.alert(content,title);
+    }
+</script>

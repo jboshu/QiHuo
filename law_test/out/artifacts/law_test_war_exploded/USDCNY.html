@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>USDCNY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/utils.js"></script>
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+</head>
+<body onload="is_holded();getdata();getdatapic();flush()">
+<div id="nowData">
+
+</div>
+    <div id="chartdiv"></div>
+</body>
+</html>
+
+<!-- Styles -->
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+
+<!-- Chart code -->
+<script>
+    var data;
+    var isonline = 1;
+    function getdata(){
+        url = "showUSDCNYupdateAction"
+        url = getQueryPath(url)
+        if(isonline==1){
+            $.post(url,function(json){
+                if(json.status == "error"&&isonline==1){
+                    isonline = 0;
+                    alert("必须登录！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    setUSDCNYdata(json);
+                }
+            })
+        }
+
+    }
+
+    function setUSDCNYdata(json){
+        console.log(json.nowData);
+        var Node = document.createElement("div");
+        if(json.nowData.now < json.nowData.open)
+            Node.innerHTML = "<div class=\"mdui-row\" style='margin-left: 2%'><h2 class=\"mdui-col-xs-2\">在岸人民币： </h2><h2 class=\"mdui-col-xs-2\" style='color: green'>"+ json.nowData.now+"</h2></div>"
+        else
+            Node.innerHTML = "<div class=\"mdui-row\" style='margin-left: 2%'><h2 class=\"mdui-col-xs-2\">在岸人民币： </h2><h2 class=\"mdui-col-xs-2\" style='color: red'>"+ json.nowData.now+"</h2></div>"
+        Node.innerHTML += "<div class=\"mdui-row\" style='margin-left: 2%'><h4 class=\"mdui-col-xs-4\">昨收："+json.nowData.close+ "</h4><h4 class=\"mdui-col-xs-4\">今开："+json.nowData.open+ "</h4></div>";
+        Node.innerHTML += "<div class=\"mdui-row\" style='margin-left: 2%'><h4 class=\"mdui-col-xs-4\">最低："+json.nowData.low+ "</h4><h4 class=\"mdui-col-xs-4\">最高："+json.nowData.high+ "</h4></div>";
+        var parent = document.getElementById("nowData");
+        parent.innerHTML = "";
+        parent.appendChild(Node);
+    }
+    function getdatapic(){
+        url = "showUSDCNYdataAction"
+        url = getQueryPath(url);
+        if(isonline==1){
+            $.post(url,function(json){
+                if(json.status == "error"){
+                    isonline = 0;
+                    alert("必须登录！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    setUSDCNY(json);
+                }
+            })
+        }
+
+    }
+    function setUSDCNY(json){
+        data = json.aaData;
+        draw();
+    }
+    function draw(){
+        am4core.useTheme(am4themes_animated);
+// Themes end
+
+        var chart = am4core.create("chartdiv", am4charts.XYChart);
+        chart.paddingRight = 20;
+
+        chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
+
+        var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+        dateAxis.renderer.grid.template.location = 0;
+
+        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.tooltip.disabled = true;
+
+        var series = chart.series.push(new am4charts.CandlestickSeries());
+        series.dataFields.dateX = "date";
+        series.dataFields.valueY = "close";
+        series.dataFields.openValueY = "open";
+        series.dataFields.lowValueY = "low";
+        series.dataFields.highValueY = "high";
+        series.tooltipText = "Open:￥{openValueY.value}\nLow:￥{lowValueY.value}\nHigh:￥{highValueY.value}\nClose:￥{valueY.value}";
+
+// important!
+// candlestick series colors are set in states.
+// series.riseFromOpenState.properties.fill = am4core.color("#00ff00");
+// series.dropFromOpenState.properties.fill = am4core.color("#FF0000");
+// series.riseFromOpenState.properties.stroke = am4core.color("#00ff00");
+// series.dropFromOpenState.properties.stroke = am4core.color("#FF0000");
+
+        series.riseFromPreviousState.properties.fillOpacity = 1;
+        series.dropFromPreviousState.properties.fillOpacity = 0;
+
+        chart.cursor = new am4charts.XYCursor();
+
+// a separate series for scrollbar
+        var lineSeries = chart.series.push(new am4charts.LineSeries());
+        lineSeries.dataFields.dateX = "date";
+        lineSeries.dataFields.valueY = "close";
+// need to set on default state, as initially series is "show"
+        lineSeries.defaultState.properties.visible = false;
+
+// hide from legend too (in case there is one)
+        lineSeries.hiddenInLegend = true;
+        lineSeries.fillOpacity = 0.5;
+        lineSeries.strokeOpacity = 0.5;
+
+        var scrollbarX = new am4charts.XYChartScrollbar();
+        scrollbarX.series.push(lineSeries);
+        chart.scrollbarX = scrollbarX;
+        console.log(data)
+        chart.data = data;
+    }
+
+    function flush(){
+        if(isonline==1){
+            setInterval(function(){
+                console.log("123");
+                getdata();
+            },5*60*1000);
+        }
+    }
+
+    function is_holded(){
+        url="query";
+        $.post(url,function(json){
+            var error = json.code;
+            if(error==123) {
+                alert("登录已过期，请重新登录");
+                logOut();
+                return;
+            }
+        })
+    }
+</script>
+
+<!-- HTML -->

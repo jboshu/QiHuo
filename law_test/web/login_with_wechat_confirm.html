@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Home</title>
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/jquery.backstretch.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parallax/3.1.0/parallax.min.js"></script>
+    <script scr="js/user_register.js"></script>
+    <script src="js/utils.js"></script>
+
+</head>
+
+
+<body class="mdui-theme-primary-indigo mdui-valign" onload="initPage();" id="body" style="height: 100%;width: 100%!important;position: absolute;">
+<div class="mdui-dialog mdui-center" id="process">
+    <div class="mdui-spinner mdui-spinner-colorful mdui-m-t-2 mdui-m-b-2" id="loader" style="display: block;margin-left:auto;margin-right:auto;margin-top: 50%"></div>
+</div>
+<div class="mdui-row mdui-center mdui-container" id="container">
+    <div class="mdui-col-lg-4 mdui-col-offset-lg-4 mdui-col-sm-6 mdui-col-offset-sm-3 mdui-col-md-6 mdui-col-offset-3" style="height: 20%">
+        <div class="mdui-card" id="mdui_card" data-depth="0.2">
+            <div class="mdui-card-media">
+                <img class="mdui-img-fluid" src="images/login_title.jpg"/>
+                <div class="mdui-card-media-covered">
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-title" >登录</div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="mdui-card-content">
+                <p>确定使用以下用户登录?</p>
+                <div id="wechat_username"></div>
+                <div class="mdui-card-actions">
+                    <div>
+                        <button class="mdui-btn mdui-ripple mdui-float-right mdui-color-deep-orange-600" onclick="login_with_wechat_confirm();" >
+                            确定
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/login_beta.js"></script>
+<script>
+    $.get('QRLoginChecker',function(json){
+        $("#wechat_username").text(json.username);
+    });
+
+    function login_with_wechat_confirm(){
+        var url="loginAction";
+        $.post(url,function(json){
+            if(json.status=="ok"||json.status=="success"){
+                mdui.alert("微信登录成功!请您返回电脑操作!");
+            }else{
+                mdui.alert(json.error);
+            }
+        })
+    }
+</script>
+</body>
+</html>

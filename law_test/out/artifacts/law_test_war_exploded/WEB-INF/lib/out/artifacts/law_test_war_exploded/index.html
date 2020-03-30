@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Home</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta name="keywords" content="" />
+	<link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+	<script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+	<script src="js/jquery-2.1.4.min.js"></script>
+	<script src="js/index_beta.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="js/connectToBroker.js"></script>
+</head>
+<body onload="show();getWeather();" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+<div id="inc_appbar"></div>
+
+<div id="inc_menu"></div>
+
+<div id="inc_notification"></div>
+
+<div style="width:5%;height:120px">
+	<div class="mdui-card">
+		<div class="mdui-card-media">
+			<img src="images/card.jpg"/>
+			<div class="mdui-card-media-covered">
+				<div class="mdui-card-primary">
+					<div class="mdui-card-primary-title">Weather</div>
+					<div class="mdui-card-primary-subtitle" id="test"></div>
+				</div>
+			</div>
+		</div>
+ 	</div>
+</div>
+
+
+<div class="mdui-container">
+
+	<div class="mdui-dialog" id="modify">
+		<div class="mdui-dialog-content">
+		<div class="mdui-dialog-title">增加订单</div>
+			<div class="mdui-textfield">
+				<label class="mdui-textfield-label">股票ID</label>
+				<input class="mdui-textfield-input" id="stock_id" disabled placeholder="stock_id"/>
+			</div>
+			<div class="mdui-textfield">
+				<label class="mdui-textfield-label">股票名称</label>
+				<input class="mdui-textfield-input" id="stock_name" disabled placeholder="stock_name"/>
+			</div>
+			<div class="mdui-textfield">
+				<label class="mdui-textfield-label">买入数量</label>
+				<input class="mdui-textfield-input" id="quantity" oninput="value=value.replace(/[^\d]/g,'')" minlength="1" maxlength="5"/>
+			</div>
+			<div class="mdui-textfield">
+				<label class="mdui-textfield-label">订单价格</label>
+				<input class="mdui-textfield-input" id="bunitprice" disabled placeholder="bunitprice"/>
+			</div>
+			<div class="mdui-textfield">
+				<label class="mdui-textfield-label">交易时间</label>
+				<input class="mdui-textfield-input" type="datetime" id="createat" disabled placeholder="createat"/>
+			</div>
+			</div>
+		<div class="mdui-dialog-actions" id="submit_btn">
+			<button class="mdui-btn" id="btn_submit" mdui-dialog-close onclick="addbmInfo()">确定</button>
+		</div>
+	</div>
+
+	<div>
+		<div class="mdui-table-fluid">
+			<table class="mdui-table mdui-table-hoverable" id="bus_table">
+				<tr>
+					<th>期货ID</th>
+					<th>名称</th>
+					<th>实时价格</th>
+					<th>涨幅</th>
+					<th>涨幅百分比</th>
+					<th>更新时间</th>
+					<th>操作</th>
+				</tr>
+				<tbody id="bus_list">
+
+				</tbody>
+			</table>
+		</div>
+
+
+	</div>
+</div>
+</body>
+</html>
+
+<script src="https://www.amcharts.com/lib/4/core.js"></script>
+<script src="https://www.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/material.js"></script>
+<script src="https://www.amcharts.com/lib/4/lang/de_DE.js"></script>
+<script src="https://www.amcharts.cm/lib/4/geodata/germanyLow.js"></script>
+
+<script>
+	$('#inc_appbar').load("index_beta.html #appbar");
+	$('#inc_menu').load("index_beta.html #left-drawer",function(responseTxt,statusTxt,xhr){
+		initPage();
+		connect();
+		$('#title').text("首页");
+	});
+	$('#inc_notification').load("index_beta.html #notifications");
+
+	var List;
+	var limit=15;
+	var len=0;
+	var Order=0;
+	var id="";
+	var name="";
+	var quotation="";
+	var riseorfall="";
+	var rofper="";
+
+	function updateTable(json){
+		List=json.list;
+		var table = document.getElementById('bus_list');
+		table.innerHTML="";
+		for(var i = 0; i < List.length; i++){
+			var newNode = document.createElement("tr");
+			newNode.innerHTML = "<td>"+List[i].id+"</td>"
+			newNode.innerHTML += "<td>"+List[i].name +"</td><td>"+List[i].quotation +"</td><td>"+List[i].riseorfall +"</td><td>"+List[i].rofper +"</td><td>"+List[i].createat +"</td>";
+			newNode.innerHTML += "<td><button class=\"mdui-btn mdui-btn-raised\" onclick='modify_record("+i+")'>买入</button></td>"
+			table.appendChild(newNode);
+		}
+	}
+
+	function modify_record(i){
+		var inst = new mdui.Dialog("#modify");
+		inst.open();
+		document.getElementById("stock_id").value = List[i].id;
+		document.getElementById("stock_name").value = List[i].name;
+		document.getElementById("quantity").value = 0;
+		document.getElementById("bunitprice").value = List[i].quotation;
+		document.getElementById("createat").value = List[i].createat;
+
+	}
+	function addbmInfo(){
+
+		url = "registerAction";
+		url = getQueryPath(url)
+		stockid=document.getElementById("stock_id").value;
+		stockname=document.getElementById("stock_name").value;
+		quantity=document.getElementById("quantity").value;
+		bunitprice=document.getElementById("bunitprice").value;
+		createat=document.getElementById("createat").value;
+		var data = '{"StockId":"'+stockid+'","StockName":"'+stockname+'","Quantity":"'+quantity+'","BUnitPrice":"'+bunitprice+'","CreateAt":"'+createat+'"}';
+		var obj = JSON.parse(data);
+		$.post(url,obj,function(json){
+			if(json.status=="1"){
+				mdui.snackbar({'message':'买入成功！'});
+				show();
+			}
+			else
+			{
+				mdui.snackbar({'message':'买入失败！'});
+				show();
+			}
+
+		})
+	}
+
+	function show(){
+
+		var url = "indexquerylistAction";
+		url=getQueryPath(url);
+
+		var data1 = '{}';
+		var j = JSON.parse(data1);
+		$.post(url,j,function(json){
+			//console.log(JSON.stringify(json));
+			bus_info=json.list;
+			if(json.status == "0"){
+				mdui.alert("出错了！");
+			}
+			else
+			{
+				updateTable(json);
+			}
+		})
+
+	}
+
+	function getWeather() {
+		url = 'https://free-api.heweather.net/s6/weather/now?location=auto_ip&key=c4ec3ec551344da284571f2e43deddb3'
+		$.get(url,function (json) {
+			console.log(json.HeWeather6[0].now);
+			$('#test').html("天气："+json.HeWeather6[0].now.cond_txt
+					+"<br>风向："+json.HeWeather6[0].now.wind_dir
+					+"<br>风力："+json.HeWeather6[0].now.wind_deg
+					+"<br>相对湿度："+json.HeWeather6[0].now.hum
+					+"<br>降水量："+json.HeWeather6[0].now.pcpn);
+		})
+	}
+
+
+</script>

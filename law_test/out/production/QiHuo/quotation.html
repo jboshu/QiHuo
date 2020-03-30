@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>行情数据</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/utils.js"></script>
+    <script type="application/javascript">
+        var socket ;
+        //登录过后初始化socket连接
+        function initSocket(userId) {
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else {
+                console.log("您的浏览器支持WebSocket/websocket");
+            }
+            //socket连接地址: 注意是ws协议
+            socket = new WebSocket("ws://localhost:8080/ChatTest/"+userId);
+            socket.onopen = function() {
+                console.log("Socket 已打开");
+            };
+            //获得消息事件
+            socket.onmessage = function(msg) {
+                var histroy = $("#history").val();
+                $("#history").val(histroy+"\r\n"+msg.data);
+                console.log($(msg));
+            };
+            //关闭事件
+            socket.onclose = function() {
+                console.log("Socket已关闭");
+            };
+            //错误事件
+            socket.onerror = function() {
+                alert("Socket发生了错误");
+            }
+            $(window).unload(function(){
+                socket.close();
+            });
+        }
+        //点击按钮发送消息
+        function send() {
+            url = "ChatGetUserName";
+            $.post(url,function(json){
+                if(json.status=="error"){
+                    alert("无法发送！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    console.log("发送消息: "+$("#msg").val());
+                    socket.send($("#msg").val());
+
+                    $('#msg').val("");
+                }
+            })
+
+        }
+        //连接
+        function connect() {
+            url = "ChatGetUserName";
+            $.post(url,function(json){
+                if(json.status=="error"){
+                    alert("无法进入！");
+                    window.location.href = getQueryPath("login");
+                }
+                else{
+                    var userId = json.username;
+                    console.log(userId);
+                    initSocket(userId);
+                }
+
+            })
+        }
+    </script>
+</head>
+<body onload="initPage();getQuatations();flush()" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+    <div class="mdui-appbar mdui-appbar-fixed">
+        <div class="mdui-toolbar mdui-color-theme">
+            <a class="mdui-btn mdui-btn-icon" mdui-drawer="{target: '#left-drawer'}"><i class="mdui-icon material-icons">menu</i></a>
+            <a href="javascript:;" class="mdui-typo-headline">期货交易系统</a>
+            <a href="javascript:;" class="mdui-typo-title">今日行情</a>
+            <div class="mdui-toolbar-spacer"></div>
+            <a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>
+            <a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">refresh</i></a>
+            <a onclick="logOut();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">exit_to_app</i></a>
+        </div>
+    </div>
+
+    <div class="mdui-drawer mdui-shadow-5" id="left-drawer">
+        <div class="mdui-spinner mdui-spinner-colorful" id="loader" style="display: block;margin-left:auto;margin-right:auto;margin-top: 50%"></div>
+        <div class="mdui-list mdui-collapse" mdui-collapse="{accordion:true}" id="drawer"></div>
+
+    </div>
+    <div class="mdui-container">
+        <div class="mdui-tab" mdui-tab style="margin-top: 1%">
+            <a href="#hs" class="mdui-ripple">沪深</a>
+            <a href="#hk" class="mdui-ripple">香港</a>
+            <a href="#jp" class="mdui-ripple">日本</a>
+            <a href="#eu" class="mdui-ripple">欧洲</a>
+            <a href="#us" class="mdui-ripple">美国</a>
+            <a href="#qh" class="mdui-ripple">期货</a>
+            <a href="#hl" class="mdui-ripple">汇率</a>
+        </div>
+        <div class="mdui-col-xs-7">
+
+            <div id="hs" class="mdui-p-a-2">
+
+            </div>
+            <div id="hk" class="mdui-p-a-2">
+
+            </div>
+            <div id="jp" class="mdui-p-a-2">
+
+            </div>
+            <div id="eu" class="mdui-p-a-2">
+
+            </div>
+            <div id="us" class="mdui-p-a-2">
+
+            </div>
+            <div id="qh" class="mdui-p-a-2">
+
+            </div>
+            <div id="hl" class="mdui-p-a-2">
+
+            </div>
+
+        </div>
+        <div class="mdui-col-xs-4">
+            <form id="chatForm" style="margin-top: 3%">
+                <button type="button" class="mdui-btn mdui-color-theme-accent mdui-ripple" onclick="connect()"><i class="mdui-icon material-icons">&#xe0b7;</i> Chat</button>
+            </form>
+            <div class="mdui-textfield">
+                <textarea id="msg" class="mdui-textfield-input" placeholder="格式:@xxx#消息 , 或者@ALL#消息"></textarea>
+
+            </div>
+            <button type="button" class="mdui-btn mdui-color-theme-accent mdui-ripple" onclick="send()"><i class="mdui-icon material-icons">&#xe163;</i> Send</button>
+
+            <textarea id="history" style="width: 100%;height: 200px ; max-lines: 10" >
+            </textarea>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script>
+    var list;
+    var length;
+    var isonline = 1;
+    function getQuatations(){
+        url = "getDataToShowAction";
+        url = getQueryPath(url)
+        if(isonline==1){
+            $.post(url,function(json){
+                if(json.status == "error"){
+                    isonline = 0;
+                    alert("必须登录！");
+                    window.location.href = getQueryPath("login");
+
+                }
+                else{
+                    setQuatations(json);
+                }
+            })
+        }
+
+    }
+
+    function setQuatations(json){
+        list = json.aaData;
+        length = list.length;
+
+        var parents;
+        parents = document.getElementById("hs");
+        parents.innerHTML = "";
+        parents = document.getElementById("hk");
+        parents.innerHTML = "";
+        parents = document.getElementById("jp");
+        parents.innerHTML = "";
+        parents = document.getElementById("eu");
+        parents.innerHTML = "";
+        parents = document.getElementById("us");
+        parents.innerHTML = "";
+        parents = document.getElementById("qh");
+        parents.innerHTML = "";
+        parents = document.getElementById("hl");
+        parents.innerHTML = "";
+        for(var i = 0; i < length; i++){
+            //console.log(list[i])
+            var kind = list[i].kind;
+            var Node = document.createElement("div");
+            Node.className = "mdui-row mdui-row-gapless";
+            Node.style = "margin-top:1%;margin-left:2%";
+            Node.innerHTML = "<div class=\"mdui-col-xs-5\"><h2>"+list[i].name+"</h2></div>";
+            if(list[i].name == "在岸人民币"){
+                Node.innerHTML = "<div class=\"mdui-col-xs-5\"><h2><a href='USDCNY.html'> "+list[i].name+"</a></h2></div>";
+            }
+            if(list[i].ROFper < 0){
+                Node.innerHTML += "<div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].quotation+"</h4></div>";
+                Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].ROFper+"%</h4></div></div>";
+                if(list[i].kind!=4&&list[i].kind!=5&&list[i].kind!=8)
+                    Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:green;'>"+list[i].riseorfall+"</h4></div></div>";
+            }
+            else{
+                Node.innerHTML += "<div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].quotation+"</h4></div>";
+                Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].ROFper+"%</h4></div></div>";
+                if(list[i].kind!=4&&list[i].kind!=5&&list[i].kind!=8)
+                    Node.innerHTML += "<div class='mdui-row'><div class=\"mdui-col-xs-5\"></div><div class=\"mdui-col-xs-7\"><h4 style='color:red;'>"+list[i].riseorfall+"</h4></div></div>";
+            }
+
+
+            var imageNode = document.createElement("div");
+            switch (kind){
+                case 0:
+                    var parent = document.getElementById("hs");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/hollow/small/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 1:
+                    var parent = document.getElementById("hk");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/hk_stock/min_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 2:
+                    var parent = document.getElementById("eu");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/forex/min5_m_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 3:
+                    var parent = document.getElementById("us");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/usstock/min_idx_py/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 4:
+                    var parent = document.getElementById("qh");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/global/mins_hollow/"+ list[i].image+".gif ' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 5:
+                    var parent = document.getElementById("hl");
+                    parent.appendChild(Node);
+                    break;
+                case 6:
+                    var parent = document.getElementById("jp");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='http://image.sinajs.cn/newchart/futures/forex/min5_m_hollow/"+ list[i].image+".gif' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 7:
+                    var parent = document.getElementById("qh");
+                    parent.appendChild(Node);
+                    imageNode.innerHTML = "<img src='https://image.sinajs.cn/newchart/v5/forex/min_m/"+ list[i].image+".gif ' width='60%' height=auto>"
+                    parent.appendChild(imageNode);
+                    break;
+                case 8:
+                    var parent = document.getElementById("hl");
+                    parent.appendChild(Node);
+                    break;
+                case 9:
+                    var parent = document.getElementById("us");
+                    parent.appendChild(Node);
+                    break;
+            }
+        }
+    }
+
+    function flush(){
+        if(isonline==1){
+            setInterval(function(){
+                console.log("123");
+                getQuatations();
+            },5*60*1000);
+        }
+
+    }
+</script>

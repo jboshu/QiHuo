@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>行情管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/dataviz.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/material.js"></script>
+    <script src="https://www.amcharts.com/lib/4/lang/de_DE.js"></script>
+    <script src="https://www.amcharts.com/lib/4/geodata/germanyLow.js"></script>
+</head>
+
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+
+<body onload="get_all_quotation();order();statistics();" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+
+<div id="inc_appbar"></div>
+<div id="inc_menu"></div>
+<div class="mdui-container">
+
+    <ul class="mdui-menu mdui-menu-cascade" id="sort_menu">
+        <li class="mdui-menu-item">
+            <a class="mdui-ripple">
+                首要关键字
+                <span class="mdui-menu-item-more"></span>
+            </a>
+            <ul class="mdui-menu">
+                <li class="mdui-menu-item ">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="id" checked/><i class="mdui-radio-icon"></i>id</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="Code"/><i class="mdui-radio-icon"></i>Code</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="Name"/><i class="mdui-radio-icon"></i>Name</label>
+                </li>
+            </ul>
+        </li>
+        <li class="mdui-menu-item">
+            <a class="mdui-ripple">
+                次要关键字
+                <span class="mdui-menu-item-more"></span>
+            </a>
+            <ul class="mdui-menu">
+                <li class="mdui-menu-item ">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="id" checked/><i class="mdui-radio-icon"></i>id</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="Code"/><i class="mdui-radio-icon"></i>Code</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="Name"/><i class="mdui-radio-icon"></i>Name</label>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <button class="mdui-btn" mdui-menu="{target:'#sort_menu'}">
+        排序
+    </button>
+    <button class="mdui-btn" mdui-dialog="{'target':'#search_dialog'}">查找</button>
+    <div class="mdui-dialog" id="search_dialog">
+        <div class="mdui-dialog-title">查找行情</div>
+        <form name="user_search_form" class="mdui-dialog-content">
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">行情关键字</label>
+                <input class="mdui-textfield-input" id="search" name="search"/>
+            </div>
+        </form>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn" onclick="search_quotation()" mdui-dialog-confirm>
+                搜索
+            </button>
+        </div>
+    </div>
+
+
+    <div class="mdui-dialog" id="modify">
+        <div class="mdui-dialog-content">
+            <div class="mdui-dialog-title">修改行情</div>
+            请将您要修改的内容填入
+            <div class="mdui-textfield">
+                <input class="mdui-textfield-input" type="text" disabled placeholder="id" id="id"/>
+            </div>
+
+            <div class="mdui-textfield">
+                <input class="mdui-textfield-input" type="text" disabled placeholder="Code" id="Code"/>
+            </div>
+            <div class="mdui-textfield">
+                <input class="mdui-textfield-input" type="text" disabled placeholder="Name" id="Name"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">Quotation</label>
+                <input class="mdui-textfield-input" id="Quotation"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">RiseOrFall</label>
+                <input class="mdui-textfield-input" id="RiseOrFall"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">ROFper(%)</label>
+                <input class="mdui-textfield-input" id="ROFper"/>
+            </div>
+        </div>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn mdui-ripple" onclick="modify()">确定</button>
+        </div>
+    </div>
+
+    <div class="mdui-table-fluid" style="margin-top: 1%">
+        <table class="mdui-table mdui-table-hoverable">
+            <thead>
+            <tr>
+                <th>id</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Quotation</th>
+                <th>RiseOrFall</th>
+                <th>ROFper(%)</th>
+                <th>operation</th>
+            </tr>
+            </thead>
+
+            <tbody id = "tbody">
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mdui-typo">
+        <h1>USDCNY各项指标按月统计</h1>
+        <div class="mdui-img-fluid" id="chartdiv">
+
+        </div>
+    </div>
+
+    <div class="mdui-fab-wrapper" id="Fab" mdui-fab="{trigger: 'hover'}">
+        <button class="mdui-fab mdui-ripple mdui-color-red">
+            <!-- 默认显示的图标 -->
+            <i class="mdui-icon material-icons">add</i>
+
+            <!-- 在拨号菜单开始打开时，平滑切换到该图标，若不需要切换图标，则可以省略该元素 -->
+            <i class="mdui-icon mdui-fab-opened material-icons">add</i>
+        </button>
+        <div class="mdui-fab-dial">
+
+            <a class="mdui-fab mdui-fab-mini mdui-ripple mdui-color-yellow" href="quotation_print.htm"><i class="mdui-icon material-icons" mdui-tooltip="{content: '打印',position:'left'}">print</i></a>
+            <a class="mdui-fab mdui-fab-mini mdui-ripple mdui-color-orange"  id="export_dialog"><i class="mdui-icon material-icons" mdui-tooltip="{content: '导出',position:'left'}">file_download</i></a>
+
+        </div>
+    </div>
+
+</div>
+<div id="inc_notification"></div>
+</body>
+<script>
+    $('#inc_appbar').load("index_beta.html #appbar");
+    $('#inc_menu').load("index_beta.html #left-drawer",function(responseTxt,statusTxt,xhr){
+        initPage();
+        $('#title').text("首页");
+    });
+    $('#inc_notification').load("index_beta.html #notifications");
+    var list;
+    var order_1 = $("input[type=radio][name=group1]:checked").val();
+    var order_2 = $("input[type=radio][name=group2]:checked").val();
+    var search = document.getElementById("search").value;
+    var inst = new mdui.Dialog("#modify");
+
+    function get_all_quotation(){
+        url = "getAllquotationAction";
+        url = getQueryPath(url)
+        order_1 = $("input[type=radio][name=group1]:checked").val();
+        order_2 = $("input[type=radio][name=group2]:checked").val();
+        search = document.getElementById("search").value;
+        var data = {'order_1':order_1,'order_2':order_2,'search':search};
+        $.post(url,data,function(json){
+            if(json.status == "error"){
+                mdui.alert("您不是管理员！");
+            }
+            else{
+                initTable(json);
+            }
+
+        })
+    }
+    function initTable(json){
+        list = json.aaData;
+        var parent = document.getElementById("tbody");
+        parent.innerHTML = "";
+        for(var i = 0; i < list.length; i++){
+            var newNode = document.createElement("tr");
+            newNode.innerHTML = "<td>"+list[i].id+"</td>"
+            newNode.innerHTML += "<td>"+list[i].Code+"</td><td>"+list[i].Name +"</td><td>" +list[i].Quotation + "</td><td>" +list[i].RiseOrFall + "</td><td>" +list[i].ROFper + "</td>";
+            newNode.innerHTML += "<td><button class=\"mdui-btn mdui-btn-raised\" onclick='modify_record("+i+")'>修改</button></td>"
+            parent.appendChild(newNode);
+        }
+    }
+    function order(){
+        $("input[type=radio]").change(function(){
+            var parent = document.getElementById("tbody");
+            parent.innerHTML = "";
+            get_all_quotation();
+        });
+    }
+    function search_quotation(){
+        var parent = document.getElementById("tbody");
+        parent.innerHTML = "";
+        get_all_quotation();
+    }
+    function modify_record(i){
+        inst.open();
+        document.getElementById("id").value = list[i].id;
+        document.getElementById("Code").value = list[i].Code;
+        document.getElementById("Name").value = list[i].Name;
+        document.getElementById("Quotation").value = list[i].Quotation;
+        document.getElementById("RiseOrFall").value = list[i].RiseOrFall;
+        document.getElementById("ROFper").value = list[i].ROFper;
+    }
+
+    function modify(){
+        url = "QuotationModifyAction";
+        var id = document.getElementById("id").value;
+        var Code = document.getElementById("Code").value;
+        var Name = document.getElementById("Name").value;
+        var Quotation = document.getElementById("Quotation").value;
+        var RiseOrFall = document.getElementById("RiseOrFall").value;
+        var ROFper = document.getElementById("ROFper").value;
+        var data = {"id":id,"Code":Code,"Name":Name,"RiseOrFall":RiseOrFall,"ROFper":ROFper,"Quotation":Quotation};
+        inst.close();
+        $.post(url,data,function(json){
+            if(json.status=="ok"){
+                get_all_quotation();
+                mdui.alert("修改成功！");
+            }
+            else
+                alert("修改失败！");
+        })
+    }
+    function drawChart(json){
+        // Themes begin
+        am4core.useTheme(am4themes_dataviz);
+        am4core.useTheme(am4themes_animated);
+// Themes end
+
+        // Create chart instance
+        var chart = am4core.create("chartdiv", am4charts.XYChart);
+
+// Add data
+        chart.data = json.aaData;
+
+// Create axes
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "month";
+        categoryAxis.numberFormatter.numberFormat = "#";
+        categoryAxis.renderer.inversed = true;
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.cellStartLocation = 0.1;
+        categoryAxis.renderer.cellEndLocation = 0.9;
+
+        var  valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.renderer.opposite = true;
+
+// Create series
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "month";
+            series.name = name;
+            series.columns.template.tooltipText = "{name}: [bold]{valueX}[/]";
+            series.columns.template.height = am4core.percent(100);
+            series.sequencedInterpolation = true;
+
+            var valueLabel = series.bullets.push(new am4charts.LabelBullet());
+            valueLabel.label.text = "{valueX}";
+            valueLabel.label.horizontalCenter = "left";
+            valueLabel.label.dx = 10;
+            valueLabel.label.hideOversized = false;
+            valueLabel.label.truncate = false;
+
+            var categoryLabel = series.bullets.push(new am4charts.LabelBullet());
+            categoryLabel.label.text = "{name}";
+            categoryLabel.label.horizontalCenter = "right";
+            categoryLabel.label.dx = -10;
+            categoryLabel.label.fill = am4core.color("#fff");
+            categoryLabel.label.hideOversized = false;
+            categoryLabel.label.truncate = false;
+        }
+
+        createSeries("avg_open", "AVGOpen");
+        createSeries("avg_close", "AVGClose");
+        createSeries("avg_high", "AVGHigh");
+        createSeries("avg_low", "AVGLow");
+    }
+    function statistics(){
+        var order_1 = "id";
+        var order_2 = "Code";
+        var data = {"order_1":order_1,"order_2":order_2,"search":""};
+        url = "QuotationStatisitcsAction";
+        url = getQueryPath(url)
+        $.post(url,data,function(json){
+            if(json.status == "error"){
+                return;
+            }
+            else{
+                console.log(json.aaData);
+                drawChart(json);
+            }
+
+        })
+    }
+    mdui.JQ('#export_dialog').on('click',function(){
+        mdui.dialog({
+            title: '行情导出',
+            content: '确定导出到本地吗？',
+            buttons: [
+                {
+                    text: '取消'
+                },
+                {
+                    text: '确认',
+                    onClick: function(inst){
+                        window.location.href='';
+                        window.location.href='QuotationExportAction';
+                        mdui.alert("已导出到本地！");
+                    }
+                }
+            ]
+        });
+    })
+</script>
+</html>

@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Home</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta charset="utf-8">
+		<meta name="keywords" content="" />
+		<link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+		<script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+		<script src="js/jquery-2.1.4.min.js"></script>
+		<script src="js/index_beta.js"></script>
+		<script src="js/wh_query_lisy.js"></script>
+		<script src="js/utils.js"></script>
+		<script src="js/connectToBroker.js"></script>
+	</head>
+	<body onload="initPage();order();show();" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+	<div id="inc_appbar"></div>
+
+	<div id="inc_menu"></div>
+
+	<div id="inc_notification"></div>
+
+
+		<ul class="mdui-menu mdui-menu-cascade" id="sort_menu">
+			<li class="mdui-menu-item">
+				<a class="mdui-ripple">
+					首要关键字
+					<span class="mdui-menu-item-more"></span>
+				</a>
+				<ul class="mdui-menu">
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="StockId" checked/><i class="mdui-radio-icon"></i>股票ID</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="StockName"/><i class="mdui-radio-icon"></i>股票名称</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="Quantity"/><i class="mdui-radio-icon"></i>持有数量</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="BUnitPrice"/><i class="mdui-radio-icon"></i>当前价格</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group1" value="CreateAt"/><i class="mdui-radio-icon"></i>修改时间</label>
+					</li>
+				</ul>
+			</li>
+			<li class="mdui-menu-item">
+				<a class="mdui-ripple">
+					次要关键字
+					<span class="mdui-menu-item-more"></span>
+				</a>
+				<ul class="mdui-menu">
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="StockId" checked/><i class="mdui-radio-icon"></i>股票ID</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="StockName"/><i class="mdui-radio-icon"></i>股票名称</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="Quantity"/><i class="mdui-radio-icon"></i>持有数量</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="BUnitPrice"/><i class="mdui-radio-icon"></i>当前价格</label>
+					</li>
+					<li class="mdui-menu-item">
+						<label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="group2" value="CreateAt"/><i class="mdui-radio-icon"></i>创建时间</label>
+					</li>
+				</ul>
+			</li>
+		</ul>
+
+		<button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="show()">显示</button>
+		<button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="hide()">隐藏</button>
+		<button class="mdui-btn" mdui-menu="{target:'#sort_menu'}">排序</button>
+		<button class="mdui-btn" mdui-dialog="{'target':'#search_dialog'}">查找</button>
+		<button type="button" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="window.location='wh_print.html'">打印</button>
+		<a class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" id="export_dialog">导出</a>
+		<button type="button" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="window.location='wh_statistics.html'">统计</button>
+
+			<div class="mdui-dialog" id="search_dialog">
+				<div class="mdui-dialog-title">持仓查找</div>
+				<form name="user_search_form" class="mdui-dialog-content">
+					<div class="mdui-textfield">
+
+						<div class="mdui-textfield mdui-textfield-floating-label">
+							<label class="mdui-textfield-label">股票ID</label>
+							<input class="mdui-textfield-input" id="StockId" name="StockId" type="text" value=""/>
+						</div>
+
+						<div class="mdui-textfield mdui-textfield-floating-label">
+							<label class="mdui-textfield-label">股票名称</label>
+							<input class="mdui-textfield-input" id="StockName" name="StockName" type="text" value=""/>
+						</div>
+
+					</div>
+				</form>
+				<div class="mdui-dialog-actions">
+					<button class="mdui-btn" onclick="query()" mdui-dialog-confirm>
+						搜索
+					</button>
+				</div>
+			</div>
+
+			<div class="mdui-dialog" id="modify">
+				<div class="mdui-dialog-content">
+					<div class="mdui-dialog-title">卖出持有</div>
+					请将您要卖出的数量填入
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">用户ID</label>
+						<input class="mdui-textfield-input" id="user_id" disabled placeholder="user_id"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">用户名称</label>
+						<input class="mdui-textfield-input" id="user_name" disabled placeholder="user_name"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">股票ID</label>
+						<input class="mdui-textfield-input" id="stock_id" disabled placeholder="stock_id"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">股票名称</label>
+						<input class="mdui-textfield-input" id="stock_name" disabled placeholder="stock_name"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">卖出数量</label>
+						<input class="mdui-textfield-input" id="quantity" oninput="value=value.replace(/[^\d]/g,'')" minlength="1" maxlength="5"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">订单价格</label>
+						<input class="mdui-textfield-input" id="bunitprice" disabled placeholder="bunitprice"/>
+					</div>
+					<div class="mdui-textfield">
+						<label class="mdui-textfield-label">交易时间</label>
+						<input class="mdui-textfield-input" type="datetime" id="createat" disabled placeholder="createat"/>
+					</div>
+				</div>
+				<div class="mdui-dialog-actions">
+					<button class="mdui-btn mdui-ripple" mdui-dialog-close onclick="modify()">确定</button>
+				</div>
+			</div>
+
+
+			<div class="mdui-table-fluid">
+				<table class="mdui-table mdui-table-hoverable">
+					<thead>
+					<tr>
+						<th>股票ID</th>
+						<th>股票名称</th>
+						<th>持有数量</th>
+						<th>当前价格</th>
+						<th>交易日期</th>
+						<th>操作</th>
+					</tr>
+					</thead>
+					<tbody id="wh_list">
+
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+	</body>
+</html>
+
+<script>
+	$('#inc_appbar').load("index_beta.html #appbar");
+	$('#inc_menu').load("index_beta.html #left-drawer",function(responseTxt,statusTxt,xhr){
+		initPage();
+		connect();
+		$('#title').text("持仓");
+	});
+	$('#inc_notification').load("index_beta.html #notifications");
+	mdui.JQ('#export_dialog').on('click',function(){
+		mdui.dialog({
+			title: '持仓导出',
+			content: '确定导出到本地吗？',
+			buttons: [
+				{
+					text: '取消'
+				},
+				{
+					text: '确认',
+					onClick: function(inst){
+						window.location.href='';
+						window.location.href='whdataToCSV';
+						mdui.alert("已导出到本地！");
+					}
+				}
+			]
+		});
+	})
+
+</script>
+
+

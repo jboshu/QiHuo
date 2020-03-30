@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>权限管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/material.js"></script>
+    <script src="https://www.amcharts.com/lib/4/lang/de_DE.js"></script>
+    <script src="https://www.amcharts.com/lib/4/geodata/germanyLow.js"></script>
+    <script src="js/utils.js"></script>
+</head>
+
+<body onload="initPage();loadMorePermission();" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+
+
+<div class="mdui-appbar mdui-appbar-fixed">
+    <div class="mdui-toolbar mdui-color-theme">
+        <a class="mdui-btn mdui-btn-icon" mdui-drawer="{target: '#left-drawer'}"><i class="mdui-icon material-icons">menu</i></a>
+        <a href="javascript:;" class="mdui-typo-headline">期货交易系统</a>
+        <a href="javascript:;" class="mdui-typo-title">权限管理</a>
+        <div class="mdui-toolbar-spacer"></div>
+        <a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>
+        <button class="mdui-btn mdui-btn-icon" mdui-dialog="{target: '#help_dlg'}"><i class="mdui-icon material-icons">help</i></button>
+        <a onclick="logOut();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">exit_to_app</i></a>
+    </div>
+</div>
+
+<div class="mdui-drawer mdui-shadow-5" id="left-drawer">
+    <div class="mdui-spinner mdui-spinner-colorful" id="loader" style="display: block;margin-left:auto;margin-right:auto;margin-top: 50%"></div>
+    <div class="mdui-list mdui-collapse" mdui-collapse="{accordion:true}" id="drawer"></div>
+
+</div>
+<div class="mdui-container">
+    <div class="mdui-dialog" id="help_dlg">
+        <div class="mdui-dialog-title">
+            帮助
+        </div>
+        <div class="mdui-dialog-content mdui-typo">
+            <p><strong>本页面的内容具有危险性,仅限开发人员使用</strong></p>
+            本功能旨在允许开发者动态修改各服务的访问权限。但这可能会导致不可预料的问题（例如，如果您禁止了非登录用户访问登录模块，那么您将永远无法再登录）。
+            因此，除非您确切地知道您在做什么，否则请不要修改本页面的任何信息！
+            <p>此外，本功能尚处于试验性阶段，不能保证所有权限修改都能正确应用。</p>
+            <p>如果您想要修改功能权限但不了解这个页面的意义，建议您联系平台开发人员。</p>
+        </div>
+    </div>
+
+    <button class="mdui-btn" onclick="queryPermission()">查找</button>
+    <button class="mdui-btn" onclick="showAddDlg()">添加</button>
+    <div class="mdui-table-fluid">
+
+        <table class="mdui-table mdui-table-hoverable" id="permission_table">
+            <tr>
+                <th>ID</th>
+                <th>类名</th>
+                <th>super_admin</th>
+                <th>admin</th>
+                <th>normal</th>
+                <th>unchecked</th>
+                <th>other</th>
+            </tr>
+        </table>
+        <button class="mdui-btn" onclick="loadMorePermission()" style="width: 100%">加载更多</button>
+    </div>
+
+    <div class="mdui-dialog" id="permission_edit_dialog">
+        <div class="mdui-dialog-title">编辑权限</div>
+        <form name="permission_edit" class="mdui-dialog-content">
+            <div class="mdui-textfield" id="permission_id_textfield">
+                <label class="mdui-textfield-label">ID</label>
+                <input class="mdui-textfield-input" disabled type="text" id="permission_id_edit" name="id"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">类名</label>
+                <input class="mdui-textfield-input" type="text" id="permission_classname_edit" name="classname"/>
+            </div>
+            <div class="mdui-typo">
+                权限
+            </div>
+            <div class="mdui-m-x-1">
+                <label class="mdui-checkbox">
+                    <input type="checkbox" name="permission_checkbox" id="permission_checkbox_super_admin" value="super_admin"/>
+                    <i class="mdui-checkbox-icon"></i>
+                    super_admin
+                </label>
+            </div>
+            <div class="mdui-m-x-1">
+                <label class="mdui-checkbox">
+                    <input type="checkbox" name="permission_checkbox" id="permission_checkbox_admin" value="admin"/>
+                    <i class="mdui-checkbox-icon"></i>
+                    admin
+                </label>
+            </div>
+            <div class="mdui-m-x-1">
+                <label class="mdui-checkbox">
+                    <input type="checkbox" name="permission_checkbox" id="permission_checkbox_normal" value="normal"/>
+                    <i class="mdui-checkbox-icon"></i>
+                    normal
+                </label>
+            </div>
+            <div class="mdui-m-x-1">
+                <label class="mdui-checkbox">
+                    <input type="checkbox" name="permission_checkbox" id="permission_checkbox_unchecked" value="unchecked"/>
+                    <i class="mdui-checkbox-icon"></i>
+                    unchecked
+                </label>
+            </div>
+            <div class="mdui-m-x-1">
+                <label class="mdui-checkbox">
+                    <input type="checkbox" name="permission_checkbox" id="permission_checkbox_others" value="others"/>
+                    <i class="mdui-checkbox-icon"></i>
+                    others
+                </label>
+            </div>
+        </form>
+        <div class="mdui-dialog-actions" id="submit_btn">
+            <button class="mdui-btn" onclick="submitEdit()" id="confirm_btn">修改</button>
+            <button class="mdui-btn" onclick="submitDelete()" id="delete_btn">删除</button>
+        </div>
+    </div>
+</div>
+<script src="js/permissionManager.js">
+
+</script>
+</body>
+</html>

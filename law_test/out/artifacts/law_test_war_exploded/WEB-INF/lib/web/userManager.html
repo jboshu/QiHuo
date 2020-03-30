@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>用户管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/css/mdui.min.css">
+    <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.2/js/mdui.min.js"></script>
+    <script src="js/index_beta.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/material.js"></script>
+    <script src="https://www.amcharts.com/lib/4/lang/de_DE.js"></script>
+    <script src="https://www.amcharts.com/lib/4/geodata/germanyLow.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="js/utils.js"></script>
+</head>
+
+<body onload="fetchUserInfo();" class="mdui-drawer-body-left mdui-appbar-with-toolbar mdui-theme-primary-pink ">
+
+
+
+<div id="inc_appbar">
+</div>
+
+<div id="inc_drawer">
+</div>
+<script>
+    $('#inc_appbar').load("index_beta.html #appbar");
+    $('#inc_drawer').load("index_beta.html #left-drawer",function(responseTxt,statusTxt,xhr){
+        initPage();
+        $('#title').text("用户管理");
+    });
+</script>
+<div class="mdui-container">
+
+    <ul class="mdui-menu mdui-menu-cascade" id="sort_menu">
+        <li class="mdui-menu-item">
+            <a class="mdui-ripple">
+                首要关键字
+                <span class="mdui-menu-item-more"></span>
+            </a>
+            <ul class="mdui-menu">
+                <li class="mdui-menu-item ">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="sorted_by" value="UserId" checked/><i class="mdui-radio-icon"></i>ID</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="sorted_by" value="UserName"/><i class="mdui-radio-icon"></i>用户名</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="sorted_by" value="Email"/><i class="mdui-radio-icon"></i>邮箱</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="sorted_by" value="Phone"/><i class="mdui-radio-icon"></i>电话</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-2 mdui-m-r-1"><input type="radio" name="sorted_by" value="CreateAt"/><i class="mdui-radio-icon"></i>创建日期</label>
+                </li>
+            </ul>
+        </li>
+        <li class="mdui-menu-item">
+            <a class="mdui-ripple">
+                次要关键字
+                <span class="mdui-menu-item-more"></span>
+            </a>
+            <ul class="mdui-menu">
+                <li class="mdui-menu-item ">
+                    <label class="mdui-radio mdui-m-l-1 mdui-m-r-1"><input type="radio" name="sorted_by2" value="UserId" checked/><i class="mdui-radio-icon"></i>ID</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-1 mdui-m-r-1"><input type="radio" name="sorted_by2" value="UserName"/><i class="mdui-radio-icon"></i>用户名</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-1 mdui-m-r-1"><input type="radio" name="sorted_by2" value="Email"/><i class="mdui-radio-icon"></i>邮箱</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-1 mdui-m-r-1"><input type="radio" name="sorted_by2" value="Phone"/><i class="mdui-radio-icon"></i>电话</label>
+                </li>
+                <li class="mdui-menu-item">
+                    <label class="mdui-radio mdui-m-l-1 mdui-m-r-1"><input type="radio" name="sorted_by2" value="CreateAt"/><i class="mdui-radio-icon"></i>创建日期</label>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <button class="mdui-btn" onclick="addUser()">添加</button>
+    <button class="mdui-btn" mdui-menu="{target:'#sort_menu'}">
+        排序
+    </button>
+
+    <button class="mdui-btn" mdui-dialog="{'target':'#search_dialog'}">查找</button>
+    <div class="mdui-dialog" id="search_dialog">
+        <div class="mdui-dialog-title">查找用户</div>
+        <form name="user_search_form" class="mdui-dialog-content">
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">用户名</label>
+                <input class="mdui-textfield-input" id="username_search" name="username_search"/>
+            </div>
+        </form>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn" onclick="searchUser()" mdui-dialog-confirm>
+                搜索
+            </button>
+        </div>
+    </div>
+
+
+    <div class="mdui-dialog" id="edit_dialog">
+        <div class="mdui-dialog-title">编辑用户</div>
+        <form name="user_edit_form" class="mdui-dialog-content">
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">ID</label>
+                <input class="mdui-textfield-input" disabled type="number" id="user_id_edit" name="user_id"/>
+            </div>
+            <div class="mdui-textfield"  id="username_textfield">
+                <label class="mdui-textfield-label">用户名</label>
+                <input class="mdui-textfield-input" type="text" id="username_edit" name="username" onblur="checkUsername()"/>
+                <div class="mdui-textfield-error" id="username_err_msg">用户名不能为空!</div>
+            </div>
+            <div class="mdui-textfield" id="password_box" style="display:none">
+                <label class="mdui-textfield-label">密码</label>
+                <input class="mdui-textfield-input" type="password" id="password_edit" name="password"/>
+            </div>
+            <div class="mdui-textfiel" id="email_textfield">
+                <label class="mdui-textfield-label">邮箱</label>
+                <input class="mdui-textfield-input" type="email" id="email_edit" name="email" onblur="checkEmail()"/>
+                <div class="mdui-textfield-error" id="email_err_msg">邮箱不能为空!</div>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">电话</label>
+                <input class="mdui-textfield-input" type="number" id="phone_edit" name="phone"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">微信</label>
+                <input class="mdui-textfield-input" type="text" id="wechat_id_edit" name="wechat_id"/>
+            </div>
+            <label class="mdui-typo">角色</label><br>
+            <div class="mdui-col-xs-3">
+                <label class="mdui-radio">
+                    <input type="radio" name="role_id_radio" id="role_id_radio_super_admin" value="super_admin" disabled/>
+                    <i class="mdui-radio-icon"></i>
+                    super_admin
+                </label>
+            </div>
+            <div class="mdui-col-xs-3">
+                <label class="mdui-radio">
+                    <input type="radio" name="role_id_radio" id="role_id_radio_admin" value="admin" disabled/>
+                    <i class="mdui-radio-icon"></i>
+                    admin
+                </label>
+            </div>
+            <div class="mdui-col-xs-3">
+                <label class="mdui-radio">
+                    <input type="radio" name="role_id_radio" id="role_id_radio_normal" value="normal" disabled/>
+                    <i class="mdui-radio-icon"></i>
+                    normal
+                </label>
+            </div>
+            <div class="mdui-col-xs-3">
+                <label class="mdui-radio">
+                    <input type="radio" name="role_id_radio" id="role_id_radio_unchecked" value="unchecked" disabled/>
+                    <i class="mdui-radio-icon"></i>
+                    unchecked
+                </label>
+            </div>
+
+        </form>
+        <div class="mdui-dialog-actions" id="submit_btn">
+            <button class="mdui-btn" id="btn_submit" onclick="submitEdit()">提交</button>
+        </div>
+    </div>
+
+    <div class="mdui-table-fluid">
+        <table class="mdui-table mdui-table-hoverable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>电话</th>
+                    <th>微信</th>
+                    <th>注册日期</th>
+                    <th>角色</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="user_list">
+
+            </tbody>
+        </table>
+    </div>
+    <div class="mdui-typo">
+        <h1>用户新增注册统计</h1>
+        <div class="mdui-img-fluid" id="chartdiv1" style="height: 300px;">
+
+        </div>
+    </div>
+
+    <div class="mdui-typo">
+        <h1>用户日登录量统计</h1>
+        <div class="mdui0img-fluid" id="dauChartDiv" style="height: 300px"></div>
+    </div>
+
+</div>
+<div class="mdui-fab-wrapper" id="Fab" mdui-fab="{trigger: 'hover'}">
+    <button class="mdui-fab mdui-ripple mdui-color-red" onclick="addUser()">
+        <!-- 默认显示的图标 -->
+        <i class="mdui-icon material-icons">add</i>
+
+        <!-- 在拨号菜单开始打开时，平滑切换到该图标，若不需要切换图标，则可以省略该元素 -->
+        <i class="mdui-icon mdui-fab-opened material-icons">add</i>
+    </button>
+    <div class="mdui-fab-dial">
+
+        <a class="mdui-fab mdui-fab-mini mdui-ripple mdui-color-yellow" href="user_print.htm"><i class="mdui-icon material-icons" mdui-tooltip="{content: '打印',position:'left'}">print</i></a>
+        <button class="mdui-fab mdui-fab-mini mdui-ripple mdui-color-orange" onclick="mdui.confirm('确定要导出吗?','导出确认',function(){window.open('dataToCSVAction');})"><i class="mdui-icon material-icons" mdui-tooltip="{content: '导出',position:'left'}">file_download</i></button>
+
+    </div>
+</div>
+</body>
+<script defer=true src="js/userManager.js"></script>
+</html>
